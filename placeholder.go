@@ -10,13 +10,12 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
-
-	"github.com/coreos/go-systemd/v22/activation"
 )
 
-
-// Want to read it in the request handler 
+// Want to read it in the request handler
 var listener net.Listener
 
 func hello(w http.ResponseWriter, r *http.Request) {
@@ -42,12 +41,18 @@ func main() {
 		}
 
 	case "systemd":
-		listeners, err := activation.Listeners()
+		// From systemd/sd-daemon.h, first passed filedescriptor is 3
+		const SD_LISTEN_FDS_START = 3
+
+		if os.Getenv("LISTEN_PID") == strconv.Itoa(os.Getpid()) && os.Getenv("LISTEN_FDS") == "1" {
+			listener, err = net.FileListener(os.NewFile(SD_LISTEN_FDS_START, "systemd socket"))
+		} else {
+			log.Fatal("Couldn't find (exactly 1) filedescriptor passed")
+		}
+
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		listener = listeners[0]
 
 	default:
 		log.Panic("Unsupported listener: ", listen_parts[0])
