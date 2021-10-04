@@ -32,7 +32,7 @@ func main() {
 	var err error
 
 	switch listen_parts[0] {
-	case "tcp", "udp":
+	case "tcp":
 		fallthrough
 
 	case "unix":
