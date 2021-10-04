@@ -1,5 +1,7 @@
 ---
 docker-build:
+  image: docker
+  stage: build
   script:
     - docker build -f Containerfile
   when: manual
