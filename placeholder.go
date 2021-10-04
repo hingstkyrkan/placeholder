@@ -11,7 +11,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -44,7 +43,7 @@ func main() {
 		// From systemd/sd-daemon.h, first passed filedescriptor is 3
 		const SD_LISTEN_FDS_START = 3
 
-		if os.Getenv("LISTEN_PID") == strconv.Itoa(os.Getpid()) && os.Getenv("LISTEN_FDS") == "1" {
+		if os.Getenv("LISTEN_FDS") == "1" {
 			listener, err = net.FileListener(os.NewFile(SD_LISTEN_FDS_START, "systemd socket"))
 		} else {
 			log.Fatal("Couldn't find (exactly 1) filedescriptor passed")
