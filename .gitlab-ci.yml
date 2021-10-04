@@ -1,0 +1,6 @@
+---
+docker-build:
+  script:
+    - docker build -f Containerfile
+  when: manual
+...
