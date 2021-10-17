@@ -1,0 +1,8 @@
+---
+podman-build:
+  image: quay.io/podman/stable
+  stage: build
+  script:
+    - podman build .
+  when: manual
+...
