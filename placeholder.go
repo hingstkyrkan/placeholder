@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"crypto/tls"
 )
 
 // Want to read it in the request handler
@@ -24,6 +25,8 @@ func hello(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// Listen on a random port by default, unless overridden
 	listen := flag.String("listen", "tcp@:0", "tcp@[ip]:<port>, unix@<path>, systemd")
+	wanttls := flag.Bool("tls", false, "enable tls on listener")
+
 	flag.Parse()
 	listen_parts := strings.Split(*listen, "@")
 
@@ -55,6 +58,18 @@ func main() {
 
 	default:
 		log.Panic("Unsupported listener: ", listen_parts[0])
+	}
+
+	if *wanttls {
+		cert, err := tls.LoadX509KeyPair("cert.pem", "key.pem")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		tlsconf := &tls.Config{Certificates: []tls.Certificate{cert}}
+
+		// Replace listener with a TLS-wrapped listener
+		listener = tls.NewListener(listener, tlsconf)
 	}
 
 	// With multiple listener options, some random, print where we ended up listening
