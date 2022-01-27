@@ -5,30 +5,59 @@
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"log"
+	"io"
 	"net"
 	"net/http"
 	"os"
 	"strings"
-	"crypto/tls"
 )
 
 // Want to read it in the request handler
 var listener net.Listener
+var dumpHeaders bool
+var dumpBody bool
 
 func hello(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, I am %s\n", listener.Addr())
-}
 
+	log.Println(r.Method, r.URL.Path, r.RemoteAddr, r.UserAgent())
+
+	if dumpHeaders {
+		fmt.Fprintf(w, "\nDumping headers:\n\n")
+		for header, values := range r.Header {
+			for _, value := range values {
+				fmt.Fprintf(w, "%s: %s\n", header, value)
+			}
+		}
+	}
+
+	if dumpBody {
+		fmt.Fprintf(w, "\nDumping body:\n\n")
+		body, _ := io.ReadAll(r.Body)
+		fmt.Fprintf(w, "%s\n", body)
+	}
+}
 func main() {
 	// Listen on a random port by default, unless overridden
 	listen := flag.String("listen", "tcp@:0", "tcp@[ip]:<port>, unix@<path>, systemd")
 	wanttls := flag.Bool("tls", false, "enable tls on listener")
+	wantheaders := flag.Bool("headers", false, "dump http headers in response")
+	wantbody := flag.Bool("body", false, "dump http body in response")
 
 	flag.Parse()
 	listen_parts := strings.Split(*listen, "@")
+
+	if *wantheaders {
+		dumpHeaders = true
+	}
+
+	if *wantbody {
+		dumpBody = true
+	}
 
 	var err error
 
