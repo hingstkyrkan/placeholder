@@ -5,4 +5,5 @@ RUN go build -o bin/ src/placeholder.go
 
 FROM scratch
 COPY --from=buildstage /go/bin/placeholder .
-CMD ["/placeholder", "-listen", "systemd"]
+EXPOSE 8080
+CMD ["/placeholder", "-listen", "tcp@:8080"]
